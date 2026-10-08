@@ -1,0 +1,44 @@
+# ==============================================================================
+# Docker Compose Specification – College Club Management System (v0.4)
+# Course: 24CYS401 – Secure Software Engineering
+# ==============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: college-club-app:v0.4
+    container_name: college_club_management
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-v0.4-compose-secure-secret-key-24cys401}
+      - FLASK_ENV=production
+      - DATABASE_NAME=college_club.db
+      - PORT=5000
+    volumes:
+      - club_db_data:/app/instance
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/login', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+volumes:
+  club_db_data:
+    driver: local

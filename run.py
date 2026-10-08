@@ -1,11 +1,14 @@
 """
-Entry point for College Club Management System (v0.1)
+Application Entry Point (v0.4 Containerized Release)
 """
 
+import os
 from app import create_app
 
 app = create_app()
 
-if __name__ == '__main__':
-    # Running in debug mode for development environment in v0.1
-    app.run(host='127.0.0.1', port=5000, debug=True)
+if __name__ == "__main__":
+    host = os.environ.get("FLASK_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host=host, port=port, debug=debug)

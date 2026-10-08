@@ -1,0 +1,64 @@
+# ==============================================================================
+# .dockerignore – College Club Management System
+# Exclude unnecessary files, development artifacts, and sensitive data
+# ==============================================================================
+
+# Version control
+.git
+.gitignore
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+tests/
+
+# Environment files and credentials
+.env
+.env.*
+venv/
+env/
+ENV/
+
+# Development artifacts and reports
+evidence/
+reports/
+docs/
+scratch/
+*.log
+
+# IDE & Operating System files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local SQLite databases (prevent copying dev data into image)
+instance/*.db
+instance/*.sqlite

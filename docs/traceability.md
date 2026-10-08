@@ -68,3 +68,23 @@ Deployment Control
 | **Automated Test** | Pytest validation inspecting database rows in `audit_logs` table. |
 | **CI/CD Check** | Pytest automated test run in CI pipeline. |
 | **Deployment Control** | Secure persistent storage volume with restricted write privileges. |
+
+---
+
+## 3. Tertiary Trace: Container Security & Isolation Controls (v0.4)
+
+| Phase Stage | Detail / Mapping |
+|-------------|------------------|
+| **Security Requirement** | Container processes must execute with least privilege, drop all kernel capabilities, prevent privilege escalation, and constrain resource consumption. |
+| **Use Case** | UC-10: Deploy and Run Application in Production Container |
+| **DFD Process** | Process 8.1: Container Process Spawning & Request Handling |
+| **Architecture Component** | `Dockerfile` + `docker-compose.yml` + Gunicorn WSGI Server |
+| **Threat (STRIDE)** | **Elevation of Privilege** (Container escape, root escalation) & **Denial of Service** (Resource exhaustion) |
+| **Vulnerability** | Running as root inside container, unbounded memory/CPU, excessive Linux capabilities |
+| **Attack Tree** | Root: Break out of container to host → Node: Exploit kernel bug as root → Prerequisite: Container running as root (UID 0) |
+| **User Story** | *As a DevOps/SecOps Engineer, I want the container to execute as an unprivileged user with dropped capabilities so that a web compromise cannot compromise the host node.* |
+| **Implementation** | `USER appuser` (UID 10001), `no-new-privileges:true`, `cap_drop: ALL`, CPU limit 1.0, RAM limit 512MB. |
+| **Automated Test** | Healthcheck assertion + Configuration validation. |
+| **CI/CD Check** | Dockerfile linting and container security scanning. |
+| **Deployment Control** | Non-root runtime enforcement and container cgroup limits. |
+
