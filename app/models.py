@@ -1,5 +1,5 @@
 """
-Domain Models for College Club Management System (v0.1)
+Domain Models for College Club Management System (v0.2 Refactored)
 
 Entities:
 - USER
@@ -14,6 +14,7 @@ Entities:
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class User:
     id: Optional[int]
@@ -22,7 +23,8 @@ class User:
     role: str  # 'student', 'coordinator', 'admin'
     full_name: str
     email: str
-    club_id: Optional[int] = None  # Relevant for coordinator assignment
+    club_id: Optional[int] = None
+
 
 @dataclass
 class Club:
@@ -32,6 +34,7 @@ class Club:
     category: str
     created_at: Optional[str] = None
 
+
 @dataclass
 class Membership:
     id: Optional[int]
@@ -39,6 +42,7 @@ class Membership:
     club_id: int
     status: str  # 'ACTIVE', 'PENDING'
     joined_at: Optional[str] = None
+
 
 @dataclass
 class Event:
@@ -51,6 +55,7 @@ class Event:
     created_by: int
     created_at: Optional[str] = None
 
+
 @dataclass
 class EventRegistration:
     id: Optional[int]
@@ -58,6 +63,7 @@ class EventRegistration:
     user_id: int
     status: str  # 'REGISTERED', 'CANCELLED'
     registered_at: Optional[str] = None
+
 
 @dataclass
 class Announcement:
@@ -67,6 +73,7 @@ class Announcement:
     content: str
     created_by: int
     created_at: Optional[str] = None
+
 
 @dataclass
 class AuditLog:

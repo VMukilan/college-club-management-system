@@ -11,20 +11,20 @@ This ledger tracks controlled security weaknesses introduced across versions and
 
 | ID | Security Issue | Introduced | Fixed | Fixed Version | Verification Method |
 |----|----------------|:----------:|:-----:|:-------------:|---------------------|
-| **SEC01** | Missing centralized authorization | v0.1 | No | Planned v0.3 | Automated route security checks / 403 response verification |
-| **SEC02** | Unauthorized event modification (IDOR) | v0.1 | No | Planned v0.3 | `test_sec02_unauthorized_cross_club_event_modification` (fails in v0.1, must pass in v0.3) |
-| **SEC03** | Weak input validation | v0.1 | No | Planned v0.3 | Boundary testing & fuzz tests on string parameters |
-| **SEC04** | Weak error handling (info disclosure) | v0.1 | No | Planned v0.3 | Error response inspection verifying lack of stack/SQL traces |
-| **SEC05** | Missing audit logging | v0.1 | No | Planned v0.3 | Database verification of `AUDIT_LOG` table entries on failures & edits |
+| **SEC01** | Missing centralized authorization | v0.1 | Partial (Decorators added) | Planned v0.3 | Route security checks & RBAC enforcement |
+| **SEC02** | Unauthorized event modification (IDOR) | v0.1 | No (Maintained in v0.2) | Planned v0.3 | `test_sec02_unauthorized_cross_club_event_modification` |
+| **SEC03** | Weak input validation | v0.1 | No | Planned v0.3 | Input boundary testing & fuzz validation |
+| **SEC04** | Weak error handling (info disclosure) | v0.1 | Partial (No `str(e)` in responses) | Planned v0.3 | Safe error message inspection & logger verification |
+| **SEC05** | Missing audit logging | v0.1 | No | Planned v0.3 | Audit log coverage across all operations |
 
 ---
 
 ## Automated Tool Findings Tracking (SAST & SCA)
 
-| Tool | Finding / ID | Severity | First Seen | Remediation Plan |
-|------|--------------|----------|:----------:|------------------|
-| **Bandit** | B608 (SQL injection in dead code) | Medium | v0.1 | Remove dead function in v0.2 |
-| **Bandit** | B106 (Hardcoded secret key) | Low | v0.1 | Move to environment configuration in v0.2 |
-| **Bandit** | B110 (Try, Except, Pass x 2) | Low | v0.1 | Implement structured logging in v0.2 |
-| **pip-audit** | CVE-2026-102598 (`werkzeug==3.1.8`) | Moderate | v0.1 | Upgrade dependency version in v0.3/v0.4 |
-| **Semgrep** | Raw query concatenation | High | v0.1 | Replace with parameterized query / remove in v0.2 |
+| Tool | Finding / ID | Severity | First Seen | Fixed In | Verification Status |
+|------|--------------|----------|:----------:|:--------:|---------------------|
+| **Bandit** | B608 (SQL injection in dead code) | Medium | v0.1 | **v0.2** | Verified: 0 Medium issues |
+| **Bandit** | B110 (Try, Except, Pass x 2) | Low | v0.1 | **v0.2** | Verified: Logging implemented |
+| **Bandit** | B106 (Hardcoded secret key in app config) | Low | v0.1 | **v0.2** | Verified: Moved to Config class |
+| **Semgrep** | Raw query concatenation | High | v0.1 | **v0.2** | Verified: 0 findings reported |
+| **pip-audit** | CVE-2026-102598 (`werkzeug==3.1.8`) | Moderate | v0.1 | Planned v0.3/v0.4 | Dependency upgrade scheduled |
