@@ -21,7 +21,7 @@ This ledger tracks controlled security weaknesses introduced across versions, th
 
 ## Automated Tool Findings Tracking (SAST & SCA)
 
-| Tool | Finding / ID | Severity | First Seen | Fixed In | Verification Status in v0.5 |
+| Tool | Finding / ID | Severity | First Seen | Fixed In | Verification Status in v0.6 |
 |------|--------------|----------|:----------:|:--------:|-----------------------------|
 | **Bandit** | B608 (SQL injection in dead code) | Medium | v0.1 | v0.2 | **Verified: 0 findings** |
 | **Bandit** | B110 (Try, Except, Pass x 2) | Low | v0.1 | v0.2 | **Verified: 0 findings** |
@@ -32,17 +32,15 @@ This ledger tracks controlled security weaknesses introduced across versions, th
 
 ---
 
-## Kubernetes Orchestration Security Controls Matrix (v0.5)
+## CI/CD & Fuzz Testing Security Gates Matrix (v0.6)
 
-| Security Control | Implementation Detail | Target Resource | Verification Method |
+| Pipeline Gate | Tool / Strategy | Execution Scope | Enforcement Threshold |
 |---|---|---|---|
-| **Restricted Pod Security** | `pod-security.kubernetes.io/enforce: restricted` | `k8s/namespace.yaml` | `test_k8s_namespace_restricted_pod_security` |
-| **Non-Root Execution** | `runAsNonRoot: true`, `runAsUser: 10001` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
-| **Capability Stripping** | `drop: ["ALL"]`, `allowPrivilegeEscalation: false` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
-| **Runtime Seccomp Profile** | `seccompProfile: {type: RuntimeDefault}` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
-| **Token Theft Mitigation** | `automountServiceAccountToken: false` | `k8s/serviceaccount.yaml` | `test_k8s_serviceaccount_token_automount_disabled` |
-| **Least-Privilege RBAC** | Namespace-scoped `Role` & `RoleBinding` | `k8s/rbac.yaml` | Manifest validation |
-| **Zero-Trust NetworkPolicy** | Ingress from ingress controller; egress DNS-only | `k8s/networkpolicy.yaml` | `test_k8s_networkpolicy_rules` |
-| **Resource Quotas & Limits** | Requests: 100m/128Mi; Limits: 500m/512Mi | `k8s/deployment.yaml` | `test_k8s_deployment_resources_and_probes` |
-| **Health Probes (Self-Healing)**| Liveness and Readiness probes checking `/login` | `k8s/deployment.yaml` | `test_k8s_deployment_resources_and_probes` |
-| **Horizontal Autoscaling** | HPA min 2, max 5, target CPU 75% | `k8s/hpa.yaml` | Manifest validation |
+| **Quality Gate** | Flake8 7.4.1 | Code style & PEP 8 compliance | 0 violations (Zero tolerance) |
+| **SAST Gate 1** | Bandit 1.9.4 | Python Abstract Syntax Tree security rules | 0 High, 0 Medium findings |
+| **SAST Gate 2** | Semgrep 1.179.0 | 290 Community security rules | 0 findings |
+| **SCA Gate** | pip-audit 2.10.1 | Dependency vulnerabilities via OSV | 0 known vulnerabilities |
+| **Dynamic Test Gate** | Pytest 9.1.1 | 29 automated tests (Functional, Security, K8s) | 100% pass rate |
+| **Fuzz Testing Gate** | Hypothesis 6.168.5 | 250+ generated inputs & 19 exploit mutations | 0 unhandled HTTP 500 errors |
+| **Container Gate** | Docker Buildx | Container image buildability | Build success without layer cache failure |
+| **K8s Security Gate** | Pytest + PyYAML | Manifest syntax and Pod Security Standards | 100% compliance with Restricted PSS |

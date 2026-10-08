@@ -107,4 +107,24 @@ Deployment Control
 | **CI/CD Check** | Automated Pytest and manifest validation in CI pipeline. |
 | **Deployment Control** | Kubernetes Admission Controller, CNI network policy filtering, PersistentVolume isolation. |
 
+---
+
+## 5. Quinary Trace: Continuous Integration & Automated Fuzz Testing (v0.6)
+
+| Phase Stage | Detail / Mapping |
+|-------------|------------------|
+| **Security Requirement** | Continuous integration must automatically execute all quality, SAST, SCA, and fuzz testing gates on every commit, preventing regressions. |
+| **Use Case** | UC-12: Automated Code Promotion & Regression Prevention |
+| **DFD Process** | Process 10.1: CI/CD Pipeline Execution & Security Verification |
+| **Architecture Component** | `.github/workflows/ci.yml` + `tests/test_fuzz.py` + Hypothesis Fuzzing Engine |
+| **Threat (STRIDE)** | **Tampering** (Regressive vulnerabilities), **Denial of Service** (Unhandled malformed payload crashes), **Elevation of Privilege** (Bypassed authorization) |
+| **Vulnerability** | Regressive security bugs introduced in pull requests; unhandled input exceptions causing crash loops |
+| **Attack Tree** | Root: Commit Security Regression to Production → Node: Bypass manual code review → Prerequisite: Missing automated CI gates |
+| **User Story** | *As a Release Engineer, I want automated CI/CD security gates so that no pull request can merge unless all tests, SAST scans, and fuzz tests pass.* |
+| **Implementation** | Multi-job workflow (`lint-and-quality`, `security-scans`, `test-and-fuzz`, `container-verification`, `k8s-manifest-validation`). |
+| **Automated Test** | 29 automated tests running under pytest and Hypothesis. |
+| **CI/CD Check** | GitHub Actions Workflow automatically executing on `push` and `pull_request`. |
+| **Deployment Control** | Branch protection rules enforcing successful CI status checks before merging to `main`. |
+
+
 
