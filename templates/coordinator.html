@@ -60,7 +60,7 @@
             <form method="POST" action="{{ url_for('routes.coordinator_create_event') }}">
                 <div class="form-group">
                     <label for="eventTitle">Event Title</label>
-                    <input type="text" id="eventTitle" name="title" class="form-control" placeholder="e.g. Workshop on AI" required>
+                    <input type="text" id="eventTitle" name="title" class="form-control" placeholder="e.g. Workshop on AI" required maxlength="100">
                 </div>
                 <div class="form-group">
                     <label for="eventDate">Event Date</label>
@@ -68,18 +68,18 @@
                 </div>
                 <div class="form-group">
                     <label for="eventLocation">Location / Venue</label>
-                    <input type="text" id="eventLocation" name="location" class="form-control" placeholder="e.g. Audi 2" required>
+                    <input type="text" id="eventLocation" name="location" class="form-control" placeholder="e.g. Audi 2" required maxlength="100">
                 </div>
                 <div class="form-group">
                     <label for="eventDesc">Description</label>
-                    <textarea id="eventDesc" name="description" class="form-control" rows="3" placeholder="Provide event schedule, rules..." required></textarea>
+                    <textarea id="eventDesc" name="description" class="form-control" rows="3" placeholder="Provide event schedule, rules..." required maxlength="1000"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Publish Event</button>
             </form>
         </div>
     </section>
 
-    <!-- Club Events & Edit (Demonstrates SEC02) -->
+    <!-- Club Events & Secure Edit Modal -->
     <section class="card span-2">
         <div class="card-header">
             <h3>Club Events &amp; Event Management</h3>
@@ -104,10 +104,15 @@
                         <td><code>{{ ev.event_date }}</code></td>
                         <td>{{ ev.location }}</td>
                         <td>
+                            <!-- Secure HTML5 data attributes replacing inline onclick JS (SEC03 Hardened) -->
                             <button 
                                 type="button" 
-                                class="btn btn-sm btn-outline" 
-                                onclick="populateEditModal('{{ ev.id }}', '{{ ev.title }}', '{{ ev.event_date }}', '{{ ev.location }}', '{{ ev.description }}')">
+                                class="btn btn-sm btn-outline edit-event-btn"
+                                data-id="{{ ev.id }}"
+                                data-title="{{ ev.title }}"
+                                data-date="{{ ev.event_date }}"
+                                data-location="{{ ev.location }}"
+                                data-desc="{{ ev.description }}">
                                 Edit
                             </button>
                         </td>
@@ -120,11 +125,11 @@
                 </tbody>
             </table>
 
-            <!-- Edit Event Form (Controlled SEC02 Demonstration) -->
+            <!-- Edit Event Form (SEC02 Object-Level Authorization Protected) -->
             <div class="edit-box mt-4">
                 <h4>Modify Event (Target ID: <span id="selectedEventIdText">None selected</span>)</h4>
                 <p class="text-sm text-muted">
-                    <em>Notice (v0.1 Controlled Weakness SEC02): In v0.1, the backend accepts arbitrary event IDs without verifying coordinator club membership.</em>
+                    <em>Security Control (v0.3): Server-side object-level RBAC verifies that you are authorized only to modify events belonging to your club (#{{ club.id if club else 'None' }}). Cross-club edits are rejected.</em>
                 </p>
                 <form method="POST" action="{{ url_for('routes.coordinator_edit_event') }}" id="editEventForm">
                     <div class="form-row">
@@ -134,7 +139,7 @@
                         </div>
                         <div class="form-group col-10">
                             <label for="edit_title">Updated Title</label>
-                            <input type="text" id="edit_title" name="title" class="form-control" placeholder="Updated title" required>
+                            <input type="text" id="edit_title" name="title" class="form-control" placeholder="Updated title" required maxlength="100">
                         </div>
                     </div>
                     <div class="form-row">
@@ -144,12 +149,12 @@
                         </div>
                         <div class="form-group col-6">
                             <label for="edit_loc">Location</label>
-                            <input type="text" id="edit_loc" name="location" class="form-control" required>
+                            <input type="text" id="edit_loc" name="location" class="form-control" required maxlength="100">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="edit_desc">Updated Description</label>
-                        <textarea id="edit_desc" name="description" class="form-control" rows="2" required></textarea>
+                        <textarea id="edit_desc" name="description" class="form-control" rows="2" required maxlength="1000"></textarea>
                     </div>
                     <button type="submit" class="btn btn-warning">Save Modifications</button>
                 </form>
@@ -166,11 +171,11 @@
             <form method="POST" action="{{ url_for('routes.coordinator_create_announcement') }}">
                 <div class="form-group">
                     <label for="annTitle">Announcement Title</label>
-                    <input type="text" id="annTitle" name="title" class="form-control" placeholder="Headline" required>
+                    <input type="text" id="annTitle" name="title" class="form-control" placeholder="Headline" required maxlength="100">
                 </div>
                 <div class="form-group">
                     <label for="annContent">Message Content</label>
-                    <textarea id="annContent" name="content" class="form-control" rows="4" placeholder="Important notice for members..." required></textarea>
+                    <textarea id="annContent" name="content" class="form-control" rows="4" placeholder="Important notice for members..." required maxlength="2000"></textarea>
                 </div>
                 <button type="submit" class="btn btn-outline btn-block">Broadcast to Campus</button>
             </form>
@@ -181,13 +186,19 @@
 
 {% block scripts %}
 <script>
-function populateEditModal(id, title, date, loc, desc) {
-    document.getElementById('edit_event_id').value = id;
-    document.getElementById('selectedEventIdText').innerText = '#' + id;
-    document.getElementById('edit_title').value = title;
-    document.getElementById('edit_date').value = date;
-    document.getElementById('edit_loc').value = loc;
-    document.getElementById('edit_desc').value = desc;
-}
+// Secure unobtrusive listener preventing inline event-handler context evaluation
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-event-btn');
+    editButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('edit_event_id').value = btn.dataset.id || '';
+            document.getElementById('selectedEventIdText').innerText = '#' + (btn.dataset.id || '');
+            document.getElementById('edit_title').value = btn.dataset.title || '';
+            document.getElementById('edit_date').value = btn.dataset.date || '';
+            document.getElementById('edit_loc').value = btn.dataset.location || '';
+            document.getElementById('edit_desc').value = btn.dataset.desc || '';
+        });
+    });
+});
 </script>
 {% endblock %}

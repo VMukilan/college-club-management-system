@@ -1,6 +1,6 @@
 """
-Application Constants and Role Definitions (v0.2 Refactored)
-Addresses CS04: Centralizes hard-coded configuration and domain strings.
+Application Constants and Role Definitions (v0.3 Secure Implementation)
+Defines domain identifiers, role definitions, and audit actions.
 """
 
 
@@ -27,7 +27,7 @@ class RegistrationStatus:
 
 
 class AuditAction:
-    """Standardized action tags for audit logging."""
+    """Standardized action tags for security audit logging."""
     LOGIN_SUCCESS = "LOGIN_SUCCESS"
     LOGIN_FAILURE = "LOGIN_FAILURE"
     SYSTEM_INIT = "SYSTEM_INIT"
@@ -38,3 +38,5 @@ class AuditAction:
     EVENT_REGISTERED = "EVENT_REGISTERED"
     ANNOUNCEMENT_PUBLISHED = "ANNOUNCEMENT_PUBLISHED"
     COORDINATOR_ASSIGNED = "COORDINATOR_ASSIGNED"
+    AUTHZ_FAILURE = "AUTHZ_FAILURE"
+    ACCOUNT_LOCKED = "ACCOUNT_LOCKED"

@@ -1,5 +1,5 @@
 """
-Database management for College Club Management System (v0.2 Refactored)
+Database management for College Club Management System (v0.3 Secure Release)
 Database Engine: SQLite
 """
 
@@ -32,7 +32,7 @@ def init_db(app):
         db = get_db()
         cursor = db.cursor()
 
-        # USER table
+        # USER table with is_active status validation
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,9 +42,18 @@ def init_db(app):
                 full_name TEXT NOT NULL,
                 email TEXT NOT NULL,
                 club_id INTEGER,
+                is_active INTEGER DEFAULT 1,
                 FOREIGN KEY (club_id) REFERENCES clubs (id)
             )
         """)
+
+        # Migration helper for existing databases
+        try:
+            cursor.execute(
+                "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"
+            )
+        except sqlite3.OperationalError:
+            pass
 
         # CLUB table
         cursor.execute("""
@@ -135,11 +144,9 @@ def seed_initial_data(db):
     """Seed initial clubs and users if not already present."""
     cursor = db.cursor()
 
-    # Check if seed users exist
     cursor.execute("SELECT COUNT(*) as count FROM users")
     count = cursor.fetchone()["count"]
     if count == 0:
-        # Initial Clubs
         cursor.execute(
             """
             INSERT INTO clubs (id, name, description, category)
@@ -177,53 +184,52 @@ def seed_initial_data(db):
             )
         )
 
-        # Initial Users
         admin_pass = generate_password_hash("AdminPass123")
         coord_pass = generate_password_hash("CoordPass123")
         student_pass = generate_password_hash("StudentPass123")
 
-        # Administrator
         cursor.execute(
             """
             INSERT INTO users (
-                username, password_hash, role, full_name, email, club_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                username, password_hash, role, full_name, email, club_id,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 "admin", admin_pass, "admin",
                 "System Administrator", "admin@college.edu", None
             )
         )
-        # Coordinator for Robotics Club (Club 1)
         cursor.execute(
             """
             INSERT INTO users (
-                username, password_hash, role, full_name, email, club_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                username, password_hash, role, full_name, email, club_id,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 "coord_robotics", coord_pass, "coordinator",
                 "Robotics Coordinator", "coord.robotics@college.edu", 1
             )
         )
-        # Coordinator for Coding Club (Club 2)
         cursor.execute(
             """
             INSERT INTO users (
-                username, password_hash, role, full_name, email, club_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                username, password_hash, role, full_name, email, club_id,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 "coord_coding", coord_pass, "coordinator",
                 "Coding Club Coordinator", "coord.coding@college.edu", 2
             )
         )
-        # Students
         cursor.execute(
             """
             INSERT INTO users (
-                username, password_hash, role, full_name, email, club_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                username, password_hash, role, full_name, email, club_id,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 "student_alice", student_pass, "student",
@@ -233,8 +239,9 @@ def seed_initial_data(db):
         cursor.execute(
             """
             INSERT INTO users (
-                username, password_hash, role, full_name, email, club_id
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                username, password_hash, role, full_name, email, club_id,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 "student_bob", student_pass, "student",
@@ -242,7 +249,6 @@ def seed_initial_data(db):
             )
         )
 
-        # Initial Events
         cursor.execute(
             """
             INSERT INTO events (
@@ -274,7 +280,6 @@ def seed_initial_data(db):
             )
         )
 
-        # Initial Announcements
         cursor.execute(
             """
             INSERT INTO announcements (
@@ -302,7 +307,6 @@ def seed_initial_data(db):
             )
         )
 
-        # Initial Audit Log
         cursor.execute(
             """
             INSERT INTO audit_logs (user_id, action, details)

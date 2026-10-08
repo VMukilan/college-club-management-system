@@ -1,20 +1,18 @@
 """
-Routes and Presentation Controllers for College Club Management System (v0.2)
+Routes and Presentation Controllers for College Club Management System (v0.3)
 
-Refactoring Highlights (v0.2):
-- CS01: Replaced duplicated authorization checks with @login_required and
-        @roles_accepted decorators.
-- CS04: Replaced hardcoded role strings with Role constants.
-- CS05: Removed direct sqlite3 connection in get_quick_stats(); now uses
-        Repository count() methods.
-- CS06: Improved error feedback without raw implementation leakage.
+Security Hardening (v0.3):
+- Centralized role-based decorators.
+- Object-level authorization passing user_id and club_id.
+- Audit logging for administrative coordinator reassignments.
+- Sanitized user feedback.
 """
 
 import logging
 from flask import (
     Blueprint, render_template, request, redirect, url_for, session, flash
 )
-from .constants import Role
+from .constants import Role, AuditAction
 from .auth_decorators import roles_accepted
 from .services import (
     AuthenticationService,
@@ -25,7 +23,9 @@ from .services import (
     AnnouncementService,
     AuditService
 )
-from .repositories import UserRepository, ClubRepository, EventRepository
+from .repositories import (
+    UserRepository, ClubRepository, EventRepository, AuditRepository
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ audit_service = AuditService()
 user_repo = UserRepository()
 club_repo = ClubRepository()
 event_repo = EventRepository()
+audit_repo = AuditRepository()
 
 
 @bp.route("/")
@@ -67,6 +68,8 @@ def login():
             flash(err, "danger")
             return render_template("login.html")
 
+        # Session setup
+        session.clear()
         session["user_id"] = user["id"]
         session["username"] = user["username"]
         session["role"] = user["role"]
@@ -95,7 +98,7 @@ def logout():
 
 
 # ============================================================
-# STUDENT ROUTES (Refactored with CS01 centralized decorators)
+# STUDENT ROUTES
 # ============================================================
 
 @bp.route("/student")
@@ -153,7 +156,7 @@ def student_register_event():
 
 
 # ============================================================
-# COORDINATOR ROUTES (Refactored with CS01 centralized decorators)
+# COORDINATOR ROUTES
 # ============================================================
 
 @bp.route("/coordinator")
@@ -202,6 +205,9 @@ def coordinator_create_event():
 @bp.route("/coordinator/events/edit", methods=["POST"])
 @roles_accepted(Role.COORDINATOR, Role.ADMIN)
 def coordinator_edit_event():
+    """
+    Update event with strict object-level authorization (SEC02 Hardened).
+    """
     event_id = request.form.get("event_id")
     title = request.form.get("title")
     description = request.form.get("description")
@@ -215,6 +221,7 @@ def coordinator_edit_event():
         event_date=event_date,
         location=location,
         user_role=session.get("role"),
+        user_id=session.get("user_id"),
         user_club_id=session.get("club_id")
     )
 
@@ -223,6 +230,8 @@ def coordinator_edit_event():
     else:
         flash(msg, "danger")
 
+    if session.get("role") == Role.ADMIN:
+        return redirect(url_for("routes.admin_dashboard"))
     return redirect(url_for("routes.coordinator_dashboard"))
 
 
@@ -247,7 +256,7 @@ def coordinator_create_announcement():
 
 
 # ============================================================
-# ADMINISTRATOR ROUTES (Refactored with CS01 centralized decorators)
+# ADMINISTRATOR ROUTES
 # ============================================================
 
 @bp.route("/admin")
@@ -257,7 +266,6 @@ def admin_dashboard():
     coordinators = user_repo.get_coordinators()
     audit_logs = audit_service.get_audit_trail(session.get("role"))
 
-    # CS05 Refactoring: Use repository count() instead of raw sql connection
     total_clubs = club_repo.count()
     total_events = event_repo.count()
 
@@ -294,9 +302,16 @@ def admin_create_club():
 def admin_assign_coordinator():
     user_id = request.form.get("user_id")
     club_id = request.form.get("club_id")
+    admin_id = session.get("user_id")
 
     try:
         user_repo.update_coordinator_club(user_id, club_id)
+        # SEC05 Hardening: Audit coordinator assignment
+        audit_repo.log(
+            admin_id,
+            AuditAction.COORDINATOR_ASSIGNED,
+            f"Assigned coordinator #{user_id} to club #{club_id}."
+        )
         flash("Coordinator assigned to club successfully!", "success")
     except Exception as err:
         logger.error("Error assigning coordinator: %s", err)
