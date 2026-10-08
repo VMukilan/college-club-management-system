@@ -1,0 +1,18 @@
+# ==============================================================================
+# PersistentVolumeClaim – College Club Management System (v0.5)
+# Ensures persistent storage for SQLite database across pod restarts
+# ==============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: college-club-pvc
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

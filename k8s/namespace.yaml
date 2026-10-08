@@ -1,0 +1,17 @@
+# ==============================================================================
+# Namespace – College Club Management System (v0.5 Kubernetes Deployment)
+# Enforces Kubernetes Pod Security Standards: Restricted Profile
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: college-club
+  labels:
+    app.kubernetes.io/part-of: college-club-management-system
+    app.kubernetes.io/managed-by: kustomize
+    # Enforce Pod Security Standards (Restricted profile prevents root containers,
+    # capability escalation, and unconfined seccomp profiles)
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

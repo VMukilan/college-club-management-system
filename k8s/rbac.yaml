@@ -1,0 +1,33 @@
+# ==============================================================================
+# RBAC – College Club Management System (v0.5)
+# Principle of Least Privilege: Restricted scoped access within college-club namespace
+# ==============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: college-club-role
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: college-club-rolebinding
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+subjects:
+  - kind: ServiceAccount
+    name: college-club-sa
+    namespace: college-club
+roleRef:
+  kind: Role
+  name: college-club-role
+  apiGroup: rbac.authorization.k8s.io

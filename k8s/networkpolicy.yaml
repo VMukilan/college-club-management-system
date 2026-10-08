@@ -1,0 +1,38 @@
+# ==============================================================================
+# NetworkPolicy – College Club Management System (v0.5)
+# Zero-Trust Network Isolation: Restrictive Ingress and Egress Filtering
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: college-club-netpol
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: college-club-app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow incoming traffic to port 5000 from within the cluster namespace and ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5000
+  egress:
+    # Allow outbound traffic exclusively for cluster DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

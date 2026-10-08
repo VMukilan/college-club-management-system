@@ -1,0 +1,26 @@
+# ==============================================================================
+# HorizontalPodAutoscaler – College Club Management System (v0.5)
+# Dynamic elasticity based on CPU utilization to prevent Denial of Service
+# ==============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: college-club-hpa
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: college-club-deployment
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75

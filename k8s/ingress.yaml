@@ -1,0 +1,34 @@
+# ==============================================================================
+# Ingress – College Club Management System (v0.5)
+# Ingress controller routing with SSL/TLS redirection and proxy hardening
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: college-club-ingress
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/custom-http-errors: "404,500,502,503"
+spec:
+  tls:
+    - hosts:
+        - club.college.edu
+      secretName: college-club-tls-cert
+  rules:
+    - host: club.college.edu
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: college-club-service
+                port:
+                  number: 80

@@ -21,7 +21,7 @@ This ledger tracks controlled security weaknesses introduced across versions, th
 
 ## Automated Tool Findings Tracking (SAST & SCA)
 
-| Tool | Finding / ID | Severity | First Seen | Fixed In | Verification Status in v0.4 |
+| Tool | Finding / ID | Severity | First Seen | Fixed In | Verification Status in v0.5 |
 |------|--------------|----------|:----------:|:--------:|-----------------------------|
 | **Bandit** | B608 (SQL injection in dead code) | Medium | v0.1 | v0.2 | **Verified: 0 findings** |
 | **Bandit** | B110 (Try, Except, Pass x 2) | Low | v0.1 | v0.2 | **Verified: 0 findings** |
@@ -32,16 +32,17 @@ This ledger tracks controlled security weaknesses introduced across versions, th
 
 ---
 
-## Container Security Controls Matrix (v0.4)
+## Kubernetes Orchestration Security Controls Matrix (v0.5)
 
-| Security Control | Implementation Detail | Target Layer | Verification Method |
+| Security Control | Implementation Detail | Target Resource | Verification Method |
 |---|---|---|---|
-| **Non-Root Execution** | `appuser` (UID 10001, GID 10001) | `Dockerfile` | `USER appuser` directive |
-| **Attack Surface Reduction** | `python:3.12-slim-bookworm` | `Dockerfile` | Minimal base image without development toolchains |
-| **Layer Hygiene** | `--no-cache-dir` pip flag | `Dockerfile` | Zero persistent wheel or pip cache in container layers |
-| **Build Context Filtering** | `.dockerignore` | Build context | Excludes `.git`, `.pytest_cache`, `tests/`, `instance/*.db`, `.env` |
-| **Persistent Storage Isolation** | `/app/instance` (0750 permissions) | Docker Volume | Named volume `club_db_data` |
-| **Kernel Privilege Hardening** | `no-new-privileges:true`, `cap_drop: ALL` | `docker-compose.yml` | Linux security options |
-| **DoS Resource Limits** | `1.0` CPU limit, `512MB` RAM limit | `docker-compose.yml` | Compose deploy resource limits |
-| **Automated Health Monitoring** | Native urllib healthcheck | `Dockerfile` & Compose | `HEALTHCHECK` checking `/login` endpoint |
-| **Production WSGI Server** | Gunicorn (2 workers, 4 threads) | `Dockerfile` & `requirements.txt` | CMD execution |
+| **Restricted Pod Security** | `pod-security.kubernetes.io/enforce: restricted` | `k8s/namespace.yaml` | `test_k8s_namespace_restricted_pod_security` |
+| **Non-Root Execution** | `runAsNonRoot: true`, `runAsUser: 10001` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
+| **Capability Stripping** | `drop: ["ALL"]`, `allowPrivilegeEscalation: false` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
+| **Runtime Seccomp Profile** | `seccompProfile: {type: RuntimeDefault}` | `k8s/deployment.yaml` | `test_k8s_deployment_security_context` |
+| **Token Theft Mitigation** | `automountServiceAccountToken: false` | `k8s/serviceaccount.yaml` | `test_k8s_serviceaccount_token_automount_disabled` |
+| **Least-Privilege RBAC** | Namespace-scoped `Role` & `RoleBinding` | `k8s/rbac.yaml` | Manifest validation |
+| **Zero-Trust NetworkPolicy** | Ingress from ingress controller; egress DNS-only | `k8s/networkpolicy.yaml` | `test_k8s_networkpolicy_rules` |
+| **Resource Quotas & Limits** | Requests: 100m/128Mi; Limits: 500m/512Mi | `k8s/deployment.yaml` | `test_k8s_deployment_resources_and_probes` |
+| **Health Probes (Self-Healing)**| Liveness and Readiness probes checking `/login` | `k8s/deployment.yaml` | `test_k8s_deployment_resources_and_probes` |
+| **Horizontal Autoscaling** | HPA min 2, max 5, target CPU 75% | `k8s/hpa.yaml` | Manifest validation |

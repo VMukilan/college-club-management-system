@@ -1,0 +1,21 @@
+# ==============================================================================
+# Service – College Club Management System (v0.5)
+# Exposes internal application pods via stable ClusterIP
+# ==============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: college-club-service
+  namespace: college-club
+  labels:
+    app.kubernetes.io/name: college-club-app
+    app.kubernetes.io/part-of: college-club-management-system
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: college-club-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+      protocol: TCP

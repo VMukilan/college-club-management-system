@@ -88,3 +88,23 @@ Deployment Control
 | **CI/CD Check** | Dockerfile linting and container security scanning. |
 | **Deployment Control** | Non-root runtime enforcement and container cgroup limits. |
 
+---
+
+## 4. Quaternary Trace: Kubernetes Cluster Security & Zero-Trust Orchestration (v0.5)
+
+| Phase Stage | Detail / Mapping |
+|-------------|------------------|
+| **Security Requirement** | Workloads must run within a hardened Kubernetes namespace enforcing Pod Security Standards Restricted, least privilege RBAC, and zero-trust network isolation. |
+| **Use Case** | UC-11: Deploy and Orchestrate Scalable Application in Kubernetes Cluster |
+| **DFD Process** | Process 9.1: Ingress Routing, Service Load Balancing & Pod Execution |
+| **Architecture Component** | `k8s/` (Namespace, Deployment, Service, Ingress, NetworkPolicy, RBAC, PVC, HPA) |
+| **Threat (STRIDE)** | **Information Disclosure** (Token theft), **Elevation of Privilege** (Root escalation), **Denial of Service** (Unmanaged crashes) |
+| **Vulnerability** | Privileged container admission, unconfined system calls, permissive network egress, unmanaged secrets |
+| **Attack Tree** | Root: Cluster Lateral Movement → Node: Steal default service account token → Node: Pivot across namespaces |
+| **User Story** | *As a Cluster Administrator, I want workloads restricted by admission controllers and network policies so that a pod compromise remains strictly contained.* |
+| **Implementation** | `pod-security.kubernetes.io/enforce: restricted`, `automountServiceAccountToken: false`, `NetworkPolicy` DNS egress whitelist, Liveness/Readiness probes. |
+| **Automated Test** | Automated test suite in `tests/test_k8s.py` verifying YAML structure and security attributes. |
+| **CI/CD Check** | Automated Pytest and manifest validation in CI pipeline. |
+| **Deployment Control** | Kubernetes Admission Controller, CNI network policy filtering, PersistentVolume isolation. |
+
+
