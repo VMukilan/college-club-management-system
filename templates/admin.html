@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Portal - College Club Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Administrator Control Center</h1>
+        <p class="subtitle">System oversight, club governance, coordinator assignments, and audit logging.</p>
+    </div>
+    <div class="metrics-row">
+        <div class="metric-pill">
+            <span class="metric-num">{{ total_clubs }}</span>
+            <span class="metric-label">Clubs Active</span>
+        </div>
+        <div class="metric-pill">
+            <span class="metric-num">{{ total_events }}</span>
+            <span class="metric-label">Events Hosted</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Manage Clubs Section -->
+    <section class="card span-2">
+        <div class="card-header">
+            <h3>Registered Clubs</h3>
+            <span class="badge">{{ clubs|length }} Clubs</span>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Club Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clubs %}
+                    <tr>
+                        <td>#{{ c.id }}</td>
+                        <td><strong>{{ c.name }}</strong></td>
+                        <td><span class="tag tag-blue">{{ c.category }}</span></td>
+                        <td class="text-sm">{{ c.description }}</td>
+                        <td><small>{{ c.created_at }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Create Club Form -->
+    <section class="card">
+        <div class="card-header">
+            <h3>Create New Club</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('routes.admin_create_club') }}">
+                <div class="form-group">
+                    <label for="clubName">Club Name</label>
+                    <input type="text" id="clubName" name="name" class="form-control" placeholder="e.g. AI & Robotics Club" required>
+                </div>
+                <div class="form-group">
+                    <label for="clubCategory">Category</label>
+                    <select id="clubCategory" name="category" class="form-control" required>
+                        <option value="Technical">Technical</option>
+                        <option value="Cultural">Cultural</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Literary">Literary</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="clubDesc">Description</label>
+                    <textarea id="clubDesc" name="description" class="form-control" rows="3" placeholder="Club objectives..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Add Club</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Coordinator Management -->
+    <section class="card span-2">
+        <div class="card-header">
+            <h3>Coordinator Assignments</h3>
+            <span class="badge">{{ coordinators|length }} Coordinators</span>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Coordinator</th>
+                        <th>Email</th>
+                        <th>Assigned Club ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cd in coordinators %}
+                    <tr>
+                        <td>#{{ cd.id }}</td>
+                        <td><strong>{{ cd.full_name }}</strong> (<code>{{ cd.username }}</code>)</td>
+                        <td>{{ cd.email }}</td>
+                        <td>
+                            {% if cd.club_id %}
+                                <span class="tag tag-green">Club #{{ cd.club_id }}</span>
+                            {% else %}
+                                <span class="tag tag-muted">Unassigned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Assign Coordinator Form -->
+    <section class="card">
+        <div class="card-header">
+            <h3>Assign Coordinator</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('routes.admin_assign_coordinator') }}">
+                <div class="form-group">
+                    <label for="coordSelect">Select Coordinator</label>
+                    <select id="coordSelect" name="user_id" class="form-control" required>
+                        {% for cd in coordinators %}
+                            <option value="{{ cd.id }}">{{ cd.full_name }} ({{ cd.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="clubSelect">Assign to Club</label>
+                    <select id="clubSelect" name="club_id" class="form-control" required>
+                        {% for c in clubs %}
+                            <option value="{{ c.id }}">{{ c.name }} (ID #{{ c.id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Save Assignment</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Audit Log Trail -->
+    <section class="card span-3">
+        <div class="card-header">
+            <h3>System Audit Trail (AUDIT_LOG)</h3>
+            <span class="badge">{{ audit_logs|length }} Events Logged</span>
+        </div>
+        <div class="card-body">
+            <p class="text-sm text-muted mb-3">
+                <em>Notice: In v0.1 (SEC05), sensitive actions like failed authentication and event updates do not appear here yet.</em>
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Log ID</th>
+                        <th>Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td><code>#{{ log.id }}</code></td>
+                        <td><small>{{ log.timestamp }}</small></td>
+                        <td>
+                            {% if log.username %}
+                                <strong>{{ log.username }}</strong>
+                            {% else %}
+                                <span class="text-muted">System (ID: {{ log.user_id or '-' }})</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="tag tag-purple">{{ log.action }}</span></td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No audit logs recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

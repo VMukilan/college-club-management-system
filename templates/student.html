@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Portal - College Club Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Student Portal</h1>
+        <p class="subtitle">Explore campus clubs, register for upcoming events, and stay informed.</p>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Clubs Section -->
+    <section class="card span-2">
+        <div class="card-header">
+            <h3>Campus Clubs</h3>
+            <span class="badge">{{ clubs|length }} Clubs Available</span>
+        </div>
+        <div class="card-body">
+            <div class="cards-list">
+                {% for club in clubs %}
+                <div class="item-card">
+                    <div class="item-main">
+                        <div class="item-title">
+                            <h4>{{ club.name }}</h4>
+                            <span class="tag tag-blue">{{ club.category }}</span>
+                        </div>
+                        <p class="item-desc">{{ club.description }}</p>
+                    </div>
+                    <div class="item-actions">
+                        {% if club.id in my_club_ids %}
+                            <span class="status-pill status-active">Member</span>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('routes.student_join_club') }}">
+                                <input type="hidden" name="club_id" value="{{ club.id }}">
+                                <button type="submit" class="btn btn-sm btn-primary">Join Club</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Announcements Section -->
+    <section class="card">
+        <div class="card-header">
+            <h3>Latest Announcements</h3>
+            <span class="badge">{{ announcements|length }}</span>
+        </div>
+        <div class="card-body">
+            <div class="announcement-list">
+                {% for a in announcements %}
+                <div class="announcement-card">
+                    <div class="announcement-meta">
+                        <span class="tag tag-purple">{{ a.club_name }}</span>
+                        <small class="text-muted">{{ a.created_at }}</small>
+                    </div>
+                    <h5 class="announcement-title">{{ a.title }}</h5>
+                    <p class="announcement-content">{{ a.content }}</p>
+                    <small class="text-muted">Posted by {{ a.author_name }}</small>
+                </div>
+                {% else %}
+                <p class="text-muted">No announcements yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section class="card span-3">
+        <div class="card-header">
+            <h3>Upcoming Events</h3>
+            <span class="badge">{{ events|length }} Events</span>
+        </div>
+        <div class="card-body">
+            <div class="events-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Club</th>
+                            <th>Event Title</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td><strong>{{ event.club_name }}</strong></td>
+                            <td>{{ event.title }}</td>
+                            <td><code>{{ event.event_date }}</code></td>
+                            <td>{{ event.location }}</td>
+                            <td class="text-sm">{{ event.description }}</td>
+                            <td>
+                                {% if event.id in my_reg_event_ids %}
+                                    <span class="status-pill status-success">Registered</span>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('routes.student_register_event') }}">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline">Register</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No upcoming events scheduled.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

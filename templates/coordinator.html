@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Coordinator Portal - College Club Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Club Coordinator Portal</h1>
+        {% if club %}
+            <p class="subtitle">Managing <strong>{{ club.name }}</strong> ({{ club.category }}) &bull; Club ID: #{{ club.id }}</p>
+        {% else %}
+            <p class="subtitle text-warning">Warning: You are not currently assigned to a specific club.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Club Members Management -->
+    <section class="card span-2">
+        <div class="card-header">
+            <h3>Registered Club Members</h3>
+            <span class="badge">{{ members|length }} Active Members</span>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Joined Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in members %}
+                    <tr>
+                        <td><code>{{ m.username }}</code></td>
+                        <td>{{ m.full_name }}</td>
+                        <td>{{ m.email }}</td>
+                        <td><span class="status-pill status-active">{{ m.status }}</span></td>
+                        <td><small>{{ m.joined_at }}</small></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No members have joined your club yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Create Event Form -->
+    <section class="card">
+        <div class="card-header">
+            <h3>Create New Event</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('routes.coordinator_create_event') }}">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title</label>
+                    <input type="text" id="eventTitle" name="title" class="form-control" placeholder="e.g. Workshop on AI" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDate">Event Date</label>
+                    <input type="date" id="eventDate" name="event_date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventLocation">Location / Venue</label>
+                    <input type="text" id="eventLocation" name="location" class="form-control" placeholder="e.g. Audi 2" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDesc">Description</label>
+                    <textarea id="eventDesc" name="description" class="form-control" rows="3" placeholder="Provide event schedule, rules..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Publish Event</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Club Events & Edit (Demonstrates SEC02) -->
+    <section class="card span-2">
+        <div class="card-header">
+            <h3>Club Events &amp; Event Management</h3>
+            <span class="badge">{{ club_events|length }} Events</span>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ev in club_events %}
+                    <tr>
+                        <td>#{{ ev.id }}</td>
+                        <td><strong>{{ ev.title }}</strong></td>
+                        <td><code>{{ ev.event_date }}</code></td>
+                        <td>{{ ev.location }}</td>
+                        <td>
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline" 
+                                onclick="populateEditModal('{{ ev.id }}', '{{ ev.title }}', '{{ ev.event_date }}', '{{ ev.location }}', '{{ ev.description }}')">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No events created yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Edit Event Form (Controlled SEC02 Demonstration) -->
+            <div class="edit-box mt-4">
+                <h4>Modify Event (Target ID: <span id="selectedEventIdText">None selected</span>)</h4>
+                <p class="text-sm text-muted">
+                    <em>Notice (v0.1 Controlled Weakness SEC02): In v0.1, the backend accepts arbitrary event IDs without verifying coordinator club membership.</em>
+                </p>
+                <form method="POST" action="{{ url_for('routes.coordinator_edit_event') }}" id="editEventForm">
+                    <div class="form-row">
+                        <div class="form-group col-2">
+                            <label for="edit_event_id">Event ID</label>
+                            <input type="number" id="edit_event_id" name="event_id" class="form-control" placeholder="ID" required>
+                        </div>
+                        <div class="form-group col-10">
+                            <label for="edit_title">Updated Title</label>
+                            <input type="text" id="edit_title" name="title" class="form-control" placeholder="Updated title" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="edit_date">Date</label>
+                            <input type="date" id="edit_date" name="event_date" class="form-control" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="edit_loc">Location</label>
+                            <input type="text" id="edit_loc" name="location" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_desc">Updated Description</label>
+                        <textarea id="edit_desc" name="description" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Save Modifications</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Publish Announcement Form -->
+    <section class="card">
+        <div class="card-header">
+            <h3>Publish Announcement</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('routes.coordinator_create_announcement') }}">
+                <div class="form-group">
+                    <label for="annTitle">Announcement Title</label>
+                    <input type="text" id="annTitle" name="title" class="form-control" placeholder="Headline" required>
+                </div>
+                <div class="form-group">
+                    <label for="annContent">Message Content</label>
+                    <textarea id="annContent" name="content" class="form-control" rows="4" placeholder="Important notice for members..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-outline btn-block">Broadcast to Campus</button>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function populateEditModal(id, title, date, loc, desc) {
+    document.getElementById('edit_event_id').value = id;
+    document.getElementById('selectedEventIdText').innerText = '#' + id;
+    document.getElementById('edit_title').value = title;
+    document.getElementById('edit_date').value = date;
+    document.getElementById('edit_loc').value = loc;
+    document.getElementById('edit_desc').value = desc;
+}
+</script>
+{% endblock %}
